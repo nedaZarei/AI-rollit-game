@@ -94,23 +94,23 @@ class MinimaxAgent(MultiAgentSearchAgent):
         gameState.getLegalActions(agentIndex) -> list
         self.evaluationFunction(gameState) -> float
         """
-        return self.minmax(gameState, 0, self.depth)[1] #action decided by minmax 
+        return self.minmax(gameState, 0, self.depth)[1] #position decided by minmax 
 
     def minmax(self, gameState: GameState, agentIndex, depth):
 
-        if gameState.isGameFinished()  or depth == 0:
-            return ( self.evaluationFunction(gameState), None)
+        if gameState.isGameFinished() or depth == 0:
+            return (self.evaluationFunction(gameState), None)
         
         agentsNum = gameState.getNumAgents()
-        agentIndex %=  agentsNum
+        agentIndex %= agentsNum
 
         if agentIndex == agentsNum-1:
             depth -= 1
 
         if agentIndex == 0:
-            return self.maximizer(gameState, agentIndex, depth) #return a tuple (highestScore , chosenAction)
+            return self.maximizer(gameState, agentIndex, depth) #return a tuple (highestScore , chosenPos)
         else:
-            return self.minimizer(gameState, agentIndex, depth) #return a tuple (lowestScore , chosenAction)
+            return self.minimizer(gameState, agentIndex, depth) #return a tuple (lowestScore , chosenPos)
     
     def maximizer(self, gameState: GameState,agentIndex, depth ):    
         positions_after_actions = [] #array of tupples (score, pos after an action)
@@ -138,9 +138,54 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
 
         You should keep track of alpha and beta in each node to be able to implement alpha-beta pruning.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()        
+        return self.minmax_ab(gameState, 0, self.depth)[1]
+    
+    def minmax_ab(self, gameState: GameState, agentIndex, depth, alpha= -999999, beta = 999999):
+        #alpha -> maximizer's best option
+        #beta -> minimizer's best option
 
+        if gameState.isGameFinished() or depth == 0:
+            return (self.evaluationFunction(gameState), None)
+        
+        agentsNum = gameState.getNumAgents()
+        agentIndex %= agentsNum
+
+        if agentIndex == agentsNum-1:
+            depth -= 1
+
+        if agentIndex == 0:
+            return self.maximizer(gameState, agentIndex, depth, alpha, beta) 
+        else:
+            return self.minimizer(gameState, agentIndex, depth, alpha, beta) 
+    
+    def maximizer(self, gameState: GameState,agentIndex, depth, alpha, beta):    
+        positions_after_actions = [] 
+
+        for pos in gameState.getLegalActions(agentIndex):
+            v = self.minmax_ab(gameState.generateSuccessor(agentIndex, pos), agentIndex + 1, depth, alpha , beta)[0]
+            positions_after_actions.append( (v , pos) )
+
+            if v > beta:
+                return (v, pos)
+            
+            alpha = max(alpha, v)
+
+        return max(positions_after_actions) 
+
+    def minimizer(self, gameState: GameState, agentIndex, depth, alpha, beta):
+        positions_after_actions = [] 
+
+        for pos in gameState.getLegalActions(agentIndex):
+            v = self.minmax_ab(gameState.generateSuccessor(agentIndex, pos), agentIndex + 1, depth, alpha, beta)[0]
+            positions_after_actions.append( (v, pos) )
+
+            if v < alpha:
+                return (v, pos)
+            
+            beta = min(beta, v)
+
+        return min(positions_after_actions)
+    
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
       Your expectimax agent which has a max node for your agent but every other node is a chance node.
