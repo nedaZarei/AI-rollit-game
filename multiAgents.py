@@ -201,9 +201,39 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         All opponents should be modeled as choosing uniformly at random from their
         legal moves.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.expectimax(gameState, 0, self.depth)[1]
+    
+    def expectimax(self, gameState: GameState, agentIndex, depth):
 
+        if gameState.isGameFinished() or depth == 0:
+            return (self.evaluationFunction(gameState), None)
+        
+        agentsNum = gameState.getNumAgents()
+        agentIndex %= agentsNum
+
+        if agentIndex == agentsNum-1:
+            depth -= 1
+
+        if agentIndex == 0:
+            return self.maximizer(gameState, agentIndex, depth)
+        else:
+            return self.averageValue(gameState, agentIndex, depth) 
+    
+    def maximizer(self, gameState: GameState,agentIndex, depth ):    
+        positions_after_actions = [] 
+        for pos in gameState.getLegalActions(agentIndex):
+            positions_after_actions.append( (self.expectimax(gameState.generateSuccessor(agentIndex, pos), agentIndex + 1, depth)[0], pos))
+        return max(positions_after_actions) 
+
+    def averageValue(self, gameState: GameState, agentIndex, depth):
+        positions_after_actions = [] 
+        sum = 0
+        for pos in gameState.getLegalActions(agentIndex):
+            v = self.expectimax(gameState.generateSuccessor(agentIndex, pos), agentIndex + 1, depth)[0]
+            positions_after_actions.append( (v, pos) )
+            sum += v
+        
+        return ( sum/len(positions_after_actions) , None)    
 
 def betterEvaluationFunction(currentGameState):
     """
