@@ -264,8 +264,9 @@ def betterEvaluationFunction(currentGameState : GameState):
     # mobility
     actual_mob_heuristic , potential_mob_heuristic = mobility(currentGameState , agentsNum)
     # stability
+    stability_heuristic = stability(currentGameState , agentsNum)
 
-    util.raiseNotDefined()
+    ...
 
 # Abbreviation
 better = betterEvaluationFunction
@@ -400,4 +401,69 @@ def corners(currentGameState : GameState , agentsNum) :
         else:
             corner_heuristic = 0    
 
-    return corner_heuristic            
+    return corner_heuristic 
+
+def stability(currentGameState : GameState , agentsNum) :
+    # Stable coins are coins which cannot be flanked at any point of time in the game from the given state. 
+    # Unstable coins are those that could be flanked in the very next move. 
+    # Semi-stable coins are those that could potentially be flanked at some point in the future,but they do not face the danger of being flanked immediately in the next move.
+    # final stability = stable + semi-stable + unstable      
+    # Typical weights could be 1 for stable coins, -1 for unstable coins and 0 for semi-stable coins    
+    max_stable = 0
+    min_stable = 0
+    agents_in_corners = currentGameState.getCorners()
+    #corners are always stable in nature, and as you build upon corners, more coins become stable in the region
+    for i in len(agents_in_corners):
+        if agents_in_corners[i] == 0 :
+            max_stable += 1
+        elif agents_in_corners[i] == 1:
+            min_stable += 1  
+           
+    max_curr_positions = currentGameState.getPieces(0)
+    max_next_possible_positions = currentGameState.getLegalActions(0)
+    min_curr_positions = currentGameState.getPieces(1)
+    min_next_possible_positions = currentGameState.getLegalActions(1)
+
+    min_unstable = 0
+    for pos in max_next_possible_positions :
+        if pos in min_curr_positions :
+            min_unstable += 1         
+
+    if(agentsNum == 2):
+        max_unstable = 0
+        for pos in min_next_possible_positions :
+            if pos in max_curr_positions :
+                max_unstable += 1
+
+        max_heuristic = max_stable - max_unstable
+        min_heuristic = min_stable - min_unstable
+
+        if(max_heuristic + min_heuristic) != 0 :
+            stability_heuristic = 100 * (max_heuristic - min_heuristic) / (max_heuristic + min_heuristic)
+        else :
+            stability_heuristic = 0    
+            
+    elif(agentsNum == 4):
+        for i in len(agents_in_corners):
+            if agents_in_corners[i] == 2:
+                min_stable += 1
+            elif agents_in_corners[i] == 3:
+                min_stable += 1 
+
+        min2_next_possible_positions = currentGameState.getLegalActions(2)
+        min3_next_possible_positions = currentGameState.getLegalActions(3)
+        mins_next_possible_positions = min_next_possible_positions + min2_next_possible_positions + min3_next_possible_positions
+        max_unstable = 0
+        for pos in mins_next_possible_positions :
+            if pos in max_curr_positions :
+                max_unstable += 1   
+
+        max_heuristic = max_stable - max_unstable
+        min_heuristic = min_stable - min_unstable
+
+        if(max_heuristic + min_heuristic) != 0 :
+            stability_heuristic = 100 * (max_heuristic - min_heuristic) / (max_heuristic + min_heuristic)
+        else :
+            stability_heuristic = 0 
+
+    return stability_heuristic        
