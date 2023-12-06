@@ -256,7 +256,6 @@ def betterEvaluationFunction(currentGameState : GameState):
     agentsNum = currentGameState.getNumAgents()
     score = currentGameState.getScore(0)
     #Each heuristic scales its return value from -100 to 100
-
     # parity
     parity_heuristic = parity(currentGameState , agentsNum)
     # mobility
@@ -267,6 +266,10 @@ def betterEvaluationFunction(currentGameState : GameState):
     # stability
     stability_heuristic = stability(currentGameState , agentsNum)
 
+    #The stability heuristic builds upon these stable positions to provide a strong position for the player
+    # Corners appear to be a less powerful heuristic than stability when it is not a standalone heuristic, 
+    # primarily because stability is better complemented by the mobility heuristic. 
+    #Though mobility has a low weight, it has such a great impact on the game play
     score += 0.2*parity_heuristic + 0.25*mobility_heuristic + 0.25*corners_heuristic + 0.3*stability_heuristic
 
     return score
