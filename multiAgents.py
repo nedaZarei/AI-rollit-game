@@ -342,7 +342,7 @@ def corners(currentGameState : GameState , agentsNum) :
     max_corner_value = 0
     min_corner_value = 0
 
-    for i in len(agents_in_corners) :
+    for i in range(4) :
         if agents_in_corners[i] == 0:
             max_corner_value += 1
         elif agents_in_corners[i] == 1:
@@ -373,7 +373,7 @@ def corners(currentGameState : GameState , agentsNum) :
         min2_corner_value = 0
         min3_corner_value = 0
 
-        for i in len(agents_in_corners) :
+        for i in range(4) :
             if agents_in_corners[i] == 2:
                 min2_corner_value += 1
             elif agents_in_corners[i] == 3:
@@ -411,7 +411,7 @@ def stability(currentGameState : GameState , agentsNum) :
     min_stable = 0
     agents_in_corners = currentGameState.getCorners()
     #corners are always stable in nature, and as you build upon corners, more coins become stable in the region
-    for i in len(agents_in_corners):
+    for i in range(4):
         if agents_in_corners[i] == 0 :
             max_stable += 1
         elif agents_in_corners[i] == 1:
@@ -442,7 +442,7 @@ def stability(currentGameState : GameState , agentsNum) :
             stability_heuristic = 0    
             
     elif(agentsNum == 4):
-        for i in len(agents_in_corners):
+        for i in range(4):
             if agents_in_corners[i] == 2:
                 min_stable += 1
             elif agents_in_corners[i] == 3:
