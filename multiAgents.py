@@ -338,5 +338,66 @@ def potential_mobility(currentGameState : GameState , oponent_positions , agentI
 
     return potentialMob            
 
-def corners(currentGameState : GameState , positions) :
-    ...
+def corners(currentGameState : GameState , agentsNum) :
+    agents_in_corners = currentGameState.getCorners() #captured corners
+    max_corner_value = 0
+    min_corner_value = 0
+
+    for i in len(agents_in_corners) :
+        if agents_in_corners[i] == 0:
+            max_corner_value += 1
+        elif agents_in_corners[i] == 1:
+            min_corner_value += 1
+    #a player’s potential corner is one which could be caught in the next move
+    max_next_possible_positions = currentGameState.getLegalActions(0)
+    potential_max_corner = 0
+    for pos in max_next_possible_positions :
+        if pos in [(0,0),(0,7),(7,0),(7,7)] :
+           potential_max_corner += 1  
+
+    min_next_possible_positions = currentGameState.getLegalActions(1)
+    potential_min_corner = 0
+    for pos in min_next_possible_positions :
+        if pos in [(0,0),(0,7),(7,0),(7,7)] :
+           potential_min_corner += 1  
+
+    max_heuristic = max_corner_value + potential_max_corner
+    min_heuristic = min_corner_value + potential_min_corner
+
+    if(agentsNum == 2):
+        if(max_corner_value + min_corner_value) != 0:
+            corner_heuristic = 100 * (max_heuristic - min_heuristic) / (max_heuristic + min_heuristic)
+        else:
+            corner_heuristic = 0    
+
+    elif (agentsNum == 4):
+        min2_corner_value = 0
+        min3_corner_value = 0
+
+        for i in len(agents_in_corners) :
+            if agents_in_corners[i] == 2:
+                min2_corner_value += 1
+            elif agents_in_corners[i] == 3:
+                min3_corner_value += 1
+
+        min2_next_possible_positions = currentGameState.getLegalActions(2)
+        potential_min2_corner = 0
+        for pos in min2_next_possible_positions :
+            if pos in [(0,0),(0,7),(7,0),(7,7)] :
+                potential_min2_corner += 1
+
+        min3_next_possible_positions = currentGameState.getLegalActions(3)
+        potential_min3_corner = 0
+        for pos in min3_next_possible_positions :
+            if pos in [(0,0),(0,7),(7,0),(7,7)] :
+                potential_min3_corner += 1
+
+        min2_heuristic = min2_corner_value + potential_min2_corner
+        min3_heuristic = min3_corner_value + potential_min3_corner
+
+        if(max_corner_value + min_corner_value + min2_corner_value + min3_corner_value) != 0:
+            corner_heuristic = 100 * (max_heuristic - min_heuristic - min2_heuristic - min3_heuristic) / (max_heuristic + min_heuristic + min2_heuristic + min3_heuristic)
+        else:
+            corner_heuristic = 0    
+
+    return corner_heuristic            
