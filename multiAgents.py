@@ -254,22 +254,22 @@ def betterEvaluationFunction(currentGameState : GameState):
 
     """
     agentsNum = currentGameState.getNumAgents()
-    score = currentGameState.getScore()
+    score = currentGameState.getScore(0)
     #Each heuristic scales its return value from -100 to 100
 
     # parity
     parity_heuristic = parity(currentGameState , agentsNum)
-    # corners
-    corners_heuristic = corners(currentGameState , agentsNum)
     # mobility
     actual_mob_heuristic , potential_mob_heuristic = mobility(currentGameState , agentsNum)
+    mobility_heuristic = max(actual_mob_heuristic, potential_mob_heuristic)
+    # corners
+    corners_heuristic = corners(currentGameState , agentsNum)
     # stability
     stability_heuristic = stability(currentGameState , agentsNum)
 
-    ...
+    score += 0.2*parity_heuristic + 0.25*mobility_heuristic + 0.25*corners_heuristic + 0.3*stability_heuristic
 
-# Abbreviation
-better = betterEvaluationFunction
+    return score
 
 def parity(currentGameState : GameState , agentsNum):
     if agentsNum == 2:
@@ -281,7 +281,6 @@ def parity(currentGameState : GameState , agentsNum):
     return parity_heuristic
 
 def mobility(currentGameState : GameState , agentsNum) :
-    #Actual mobility is the number of next moves a player has, given the current state of the game.
     #Actual mobility is calculated by examining the board and counting the number of legal moves for the player
     actualMaxMob = len(currentGameState.getLegalActions(0))
     actualMinMob = len(currentGameState.getLegalActions(1))
@@ -299,7 +298,6 @@ def mobility(currentGameState : GameState , agentsNum) :
             actual_mob_heuristic = 100 * (actualMaxMob - actualMinMob  - actualMin2Mob - actualMin3Mob) / (actualMaxMob + actualMinMob  + actualMin2Mob + actualMin3Mob)
         else :
             actual_mob_heuristic = 0        
-    #Potential mobility is the number of possible moves the player might have over the next few moves.
     #Potential mobility is calculated by counting the number of empty spaces next to atleast one of the opponent’s coin
     min_positions = currentGameState.getPieces(1)
     max_positions = currentGameState.getPieces(0)
@@ -467,3 +465,6 @@ def stability(currentGameState : GameState , agentsNum) :
             stability_heuristic = 0 
 
     return stability_heuristic        
+
+# Abbreviation
+better = betterEvaluationFunction
