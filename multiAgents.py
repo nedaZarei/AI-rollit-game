@@ -235,7 +235,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         
         return ( sum/len(positions_after_actions) , None)    
 
-def betterEvaluationFunction(currentGameState):
+def betterEvaluationFunction(currentGameState : GameState):
     """
     Your extreme evaluation function.
 
@@ -247,24 +247,88 @@ def betterEvaluationFunction(currentGameState):
 
     Here are also some functions you will need to use:
     
-    gameState.getPieces(index) -> list
-    gameState.getCorners() -> 4-tuple
-    gameState.getScore() -> list
+    gameState.getPieces(index) -> list    positions of each player's pieces
+    gameState.getCorners() -> 4-tuple     Returns a 4-tuple each with the index of the player who occupies that corner. Returns -1 if it is free
+    gameState.getScore() -> list          
     gameState.getScore(index) -> int
 
     """
-    
-    "*** YOUR CODE HERE ***"
+    agentsNum = currentGameState.getNumAgents()
+    score = currentGameState.getScore()
+    #Each heuristic scales its return value from -100 to 100
 
     # parity
-
+    parity_heuristic = parity(currentGameState , agentsNum)
     # corners
 
     # mobility
-
+    actual_mob_heuristic , potential_mob_heuristic = mobility(currentGameState , agentsNum)
     # stability
-    
+
     util.raiseNotDefined()
 
 # Abbreviation
 better = betterEvaluationFunction
+
+def parity(currentGameState : GameState , agentsNum):
+    if agentsNum == 2:
+        parity_heuristic = 100 * (currentGameState.getScore(0) - currentGameState.getScore(1)) / (currentGameState.getScore(0) + currentGameState.getScore(1))
+
+    elif agentsNum == 4:
+        parity_heuristic = 100 * (currentGameState.getScore(0) - currentGameState.getScore(1) - currentGameState.getScore(2) - currentGameState.getScore(3)) / (currentGameState.getScore(0) + currentGameState.getScore(1) + currentGameState.getScore(2) + currentGameState.getScore(3))
+
+    return parity_heuristic
+
+def mobility(currentGameState : GameState , agentsNum) :
+    #Actual mobility is the number of next moves a player has, given the current state of the game.
+    #Actual mobility is calculated by examining the board and counting the number of legal moves for the player
+    actualMaxMob = len(currentGameState.getLegalActions(0))
+    actualMinMob = len(currentGameState.getLegalActions(1))
+
+    if agentsNum == 2:
+        if (actualMaxMob + actualMinMob) != 0 :
+            actual_mob_heuristic = 100 * (actualMaxMob - actualMinMob) / (actualMaxMob + actualMinMob)
+        else :
+            actual_mob_heuristic = 0
+
+    elif agentsNum == 4: 
+        actualMin2Mob = len(currentGameState.getLegalActions(2))
+        actualMin3Mob = len(currentGameState.getLegalActions(3))
+        if (actualMaxMob + actualMinMob + actualMin2Mob + actualMin3Mob) != 0 :
+            actual_mob_heuristic = 100 * (actualMaxMob - actualMinMob  - actualMin2Mob - actualMin3Mob) / (actualMaxMob + actualMinMob  + actualMin2Mob + actualMin3Mob)
+        else :
+            actual_mob_heuristic = 0
+    #Potential mobility is the number of possible moves the player might have over the next few moves.
+    #Potential mobility is calculated by counting the number of empty spaces next to atleast one of the opponent’s coin
+    max_positions = currentGameState.getPieces(0)
+    potentialMaxMob = potential_mobility(max_positions) 
+    min_positions = currentGameState.getPieces(1)
+    potentialMinMob = potential_mobility(min_positions)
+
+    if agentsNum == 2 :
+        if (potentialMaxMob + potentialMinMob) != 0 :
+            potential_mob_heuristic = 100 * (potentialMaxMob - potentialMinMob) / (potentialMaxMob + potentialMinMob)
+        else :
+            potential_mob_heuristic = 0
+    elif agentsNum == 4:
+       min2_positions = currentGameState.getPieces(2)
+       potentialMin2Mob = potential_mobility(min2_positions)        
+
+       min3_positions = currentGameState.getPieces(3)
+       potentialMin3Mob = potential_mobility(min3_positions)   
+
+       if (potentialMaxMob + potentialMinMob) != 0 :
+            potential_mob_heuristic = 100 * (potentialMaxMob - potentialMinMob - potentialMin2Mob - potentialMin3Mob) / (potentialMaxMob + potentialMinMob + potentialMin2Mob + potentialMin3Mob)
+       else :
+            potential_mob_heuristic = 0
+    
+    return actual_mob_heuristic , potential_mob_heuristic
+
+def potential_mobility(currentGameState : GameState , positions) :
+    potentialMob = 0 
+    for pos in positions:
+        for dir in [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]:
+            if currentGameState.nextUnoccupiedPos(0, pos, dir) is not None:
+                potentialMob += 1 
+
+    return potentialMob            
