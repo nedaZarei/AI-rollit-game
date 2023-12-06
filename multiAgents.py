@@ -260,7 +260,7 @@ def betterEvaluationFunction(currentGameState : GameState):
     # parity
     parity_heuristic = parity(currentGameState , agentsNum)
     # corners
-
+    corners_heuristic = corners(currentGameState , agentsNum)
     # mobility
     actual_mob_heuristic , potential_mob_heuristic = mobility(currentGameState , agentsNum)
     # stability
@@ -297,38 +297,46 @@ def mobility(currentGameState : GameState , agentsNum) :
         if (actualMaxMob + actualMinMob + actualMin2Mob + actualMin3Mob) != 0 :
             actual_mob_heuristic = 100 * (actualMaxMob - actualMinMob  - actualMin2Mob - actualMin3Mob) / (actualMaxMob + actualMinMob  + actualMin2Mob + actualMin3Mob)
         else :
-            actual_mob_heuristic = 0
+            actual_mob_heuristic = 0        
     #Potential mobility is the number of possible moves the player might have over the next few moves.
     #Potential mobility is calculated by counting the number of empty spaces next to atleast one of the opponent’s coin
-    max_positions = currentGameState.getPieces(0)
-    potentialMaxMob = potential_mobility(max_positions) 
     min_positions = currentGameState.getPieces(1)
-    potentialMinMob = potential_mobility(min_positions)
+    max_positions = currentGameState.getPieces(0)
 
     if agentsNum == 2 :
+        potentialMaxMob = potential_mobility(currentGameState, min_positions, 0) #openent positions 
+        potentialMinMob = potential_mobility(currentGameState, max_positions, 1)
+
         if (potentialMaxMob + potentialMinMob) != 0 :
             potential_mob_heuristic = 100 * (potentialMaxMob - potentialMinMob) / (potentialMaxMob + potentialMinMob)
         else :
             potential_mob_heuristic = 0
     elif agentsNum == 4:
-       min2_positions = currentGameState.getPieces(2)
-       potentialMin2Mob = potential_mobility(min2_positions)        
+        min2_positions = currentGameState.getPieces(2)
+        min3_positions = currentGameState.getPieces(3)
 
-       min3_positions = currentGameState.getPieces(3)
-       potentialMin3Mob = potential_mobility(min3_positions)   
+        max_oponents_positions = min_positions + min2_positions + min3_positions
 
-       if (potentialMaxMob + potentialMinMob) != 0 :
-            potential_mob_heuristic = 100 * (potentialMaxMob - potentialMinMob - potentialMin2Mob - potentialMin3Mob) / (potentialMaxMob + potentialMinMob + potentialMin2Mob + potentialMin3Mob)
-       else :
-            potential_mob_heuristic = 0
-    
+        potentialMaxMob = potential_mobility(currentGameState, max_oponents_positions, 0)
+        potentialMinMob = potential_mobility(currentGameState, max_positions, 1)
+        potentialMin2Mob = potential_mobility(currentGameState, max_positions, 2)   
+        potentialMin3Mob = potential_mobility(currentGameState, max_positions, 3)   
+
+        if (potentialMaxMob + potentialMinMob + potentialMin2Mob + potentialMin3Mob) != 0 :
+                potential_mob_heuristic = 100 * (potentialMaxMob - potentialMinMob - potentialMin2Mob - potentialMin3Mob) / (potentialMaxMob + potentialMinMob + potentialMin2Mob + potentialMin3Mob)
+        else :
+                potential_mob_heuristic = 0
+        
     return actual_mob_heuristic , potential_mob_heuristic
 
-def potential_mobility(currentGameState : GameState , positions) :
+def potential_mobility(currentGameState : GameState , oponent_positions , agentIndex) :
     potentialMob = 0 
-    for pos in positions:
+    for pos in oponent_positions:
         for dir in [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]:
-            if currentGameState.nextUnoccupiedPos(0, pos, dir) is not None:
+            if currentGameState.nextUnoccupiedPos(agentIndex, pos, dir) is not None:
                 potentialMob += 1 
 
     return potentialMob            
+
+def corners(currentGameState : GameState , positions) :
+    ...
